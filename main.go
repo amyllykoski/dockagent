@@ -35,7 +35,7 @@ func printMux() {
 }
 
 func getCmdLineArgs() flags {
-	isProxy := flag.Bool("x", false, "run as proxy")
+	isProxy := flag.Bool("x", true, "run as proxy")
 	listenIP := flag.String("lip", "0.0.0.0", "listen IP address")
 	listenPort := flag.String("lp", "8005", "listen port")
 	proxyIP := flag.String("pip", "0.0.0.0", "proxy IP address")
