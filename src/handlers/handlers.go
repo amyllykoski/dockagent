@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"io/ioutil"
+	"encoding/json"
 )
 
 func main() {
@@ -13,6 +15,15 @@ func main() {
 
 func HandleRequest(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("Received request...")
+	body, err := ioutil.ReadAll(r.Body)
+	  if err != nil {
+        panic(err.Error())
+    }
+	
+	fmt.Println("Body: " + string(body))
+	var data string;
+    json.Unmarshal(body, &data)
+	fmt.Println("JSON: " + data)
 	io.WriteString(w, "Hello schmooworld!")
 }
 
