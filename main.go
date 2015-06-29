@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"handlers"
@@ -13,10 +14,16 @@ import (
 
 type flags struct {
 	isProxy    bool
-	listenIP  string
+	listenIP   string
 	listenPort string
-	proxyIP   string
+	proxyIP    string
 	proxyPort  string
+	name       string
+}
+
+type heartbeat struct {
+	fromIP   string
+	fromName string
 }
 
 var mux map[string]func(http.ResponseWriter, *http.Request)
@@ -33,9 +40,10 @@ func getCmdLineArgs() flags {
 	listenPort := flag.String("lp", "8005", "listen port")
 	proxyIP := flag.String("pip", "0.0.0.0", "proxy IP address")
 	proxyPort := flag.String("pp", "8006", "proxy port")
+	name := flag.String("n", "NoName", "Name of this agent")
 	flag.Parse()
 
-	return flags{ *isProxy, *listenIP, *listenPort, *proxyIP, *proxyPort}
+	return flags{*isProxy, *listenIP, *listenPort, *proxyIP, *proxyPort, *name}
 }
 
 func setupRoutes() {
@@ -49,7 +57,11 @@ func sendHeartbeat(f flags) {
 	url := "http://" + f.proxyIP + ":" + f.proxyPort
 	fmt.Println("URL:>", url)
 
-	var jsonStr = []byte(`{"title":"Buy cheese and bread for breakfast."}`)
+	hb := map[string]string{"fromIP": f.listenIP, "fromName": f.name}
+	json, _ := json.Marshal(hb)
+	var jsonStr = []byte(string(json))
+	//var hb heartbeat = []byte(`{"fromIP":"123.345.234.111"}, {"fromName":"antti"}`)
+	//var jsonStr = []byte(`{"title":"Buy cheese and bread for breakfast."}`)
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonStr))
 	req.Header.Set("X-Custom-Header", "myvalue")
 	req.Header.Set("Content-Type", "application/json")
