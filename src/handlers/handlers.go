@@ -2,37 +2,75 @@
 package handlers
 
 import (
+	"encoding/json"
 	"fmt"
 	"io"
-	"net/http"
 	"io/ioutil"
-	"encoding/json"
+	"net/http"
 )
 
-func main() {
-	fmt.Println("Hello World!")
-}
-
-func HandleRequest(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("Received request...")
+func HandleSpa(w http.ResponseWriter, r *http.Request) {
 	body, err := ioutil.ReadAll(r.Body)
-	  if err != nil {
-        panic(err.Error())
-    }
-	
+	if err != nil {
+		panic(err.Error())
+	}
 	fmt.Println("Body: " + string(body))
-	var data string;
-    json.Unmarshal(body, &data)
+	var data string
+	json.Unmarshal(body, &data)
 	fmt.Println("JSON: " + data)
-	io.WriteString(w, "Hello schmooworld!")
+	io.WriteString(w, "Hello spa!")
 }
 
-func HandleRequest1(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("Received request1...")
-	io.WriteString(w, "Hello world1!")
+type Heartbeat struct {
+	repoTags string `json:"RepoTags"`
 }
 
-func HandleRequest2(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("Received request2...")
-	io.WriteString(w, "Hello world2!")
+func HandleHeartbeat(w http.ResponseWriter, r *http.Request) {
+	body, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		panic(err.Error())
+	}
+	fmt.Println("Body: " + string(body))
+	//	var data interface{}
+	var hb Heartbeat
+	json.Unmarshal(body, &hb)
+
+	fmt.Println(hb)
+	io.WriteString(w, "Hello hb!")
 }
+
+func HandleImages(w http.ResponseWriter, r *http.Request) {
+	body, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		panic(err.Error())
+	}
+	fmt.Println("Body: " + string(body))
+
+	var images map[string]interface{}
+	json.Unmarshal([]byte(body), &images)
+
+	for k, v := range images {
+		switch vv := v.(type) {
+		case string:
+			fmt.Println(k, "is string", vv)
+		case int:
+			fmt.Println(k, "is int", vv)
+		case []interface{}:
+			fmt.Println(k, "is an array:")
+			for i, u := range vv {
+				fmt.Println(i, u)
+			}
+		default:
+			fmt.Println(k, "is of a type I don't know how to handle")
+		}
+	}
+
+	fmt.Println("%#v", images)
+
+	//	var data string
+	//	json.Unmarshal(body, &data)
+	//	fmt.Println("JSON: " + data)
+	io.WriteString(w, "Hello images!")
+}
+
+//	hb := data.(map[string]interface{})

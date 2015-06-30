@@ -1,3 +1,8 @@
+// Docker Proxy acts as a web server to web browsers serving the GUI application
+// files. It also acts as a proxy for clients (GUI and CLI) to access Docker
+// hosts. Docker related events originating from the Docker Hosts are being
+// aggregated for client use. Handles Cross-Origin Resource Sharing (CORS)
+// restrictions on XMLHttpRequests
 package main
 
 import (
@@ -12,6 +17,7 @@ import (
 	"time"
 )
 
+// Command line flags.
 type flags struct {
 	isProxy    bool
 	listenIP   string
@@ -21,11 +27,13 @@ type flags struct {
 	name       string
 }
 
+// Docker Agents send heartbeats to Docker Proxy.
 type heartbeat struct {
 	fromIP   string
 	fromName string
 }
 
+// Http routing map.
 var mux map[string]func(http.ResponseWriter, *http.Request)
 
 func printMux() {
@@ -46,11 +54,15 @@ func getCmdLineArgs() flags {
 	return flags{*isProxy, *listenIP, *listenPort, *proxyIP, *proxyPort, *name}
 }
 
+// REST endpoints supported by the proxy are as follows.
+// /spa -- for AngularJS GUI files (GET)
+// /hb/{heartbeat struct} (POST)
+// /images/{image struct}  (POST)
 func setupRoutes() {
 	mux = make(map[string]func(http.ResponseWriter, *http.Request))
-	mux["/"] = handlers.HandleRequest
-	mux["/kakki"] = handlers.HandleRequest1
-	mux["/foo"] = handlers.HandleRequest2
+	mux["/spa"] = handlers.HandleSpa
+	mux["/hb"] = handlers.HandleHeartbeat
+	mux["/images"] = handlers.HandleImages
 }
 
 func sendHeartbeat(f flags) {
